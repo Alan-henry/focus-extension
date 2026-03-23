@@ -9,7 +9,6 @@
 
 •After each timer (work or break) ends you will get a notification regarding it and you can start timer for the later
 
-•it also has a to do list.
+•It also has a to do list which can be toggled to from the top of the extension
 
-<img width="450" height="570" alt="image" src="https://github.com/user-attachments/assets/b9fe027e-f688-4741-bd3a-5acac6164753" />
-
+<img width="438" height="633" alt="image" src="https://github.com/user-attachments/assets/bd799a40-2add-4a01-aa89-1ee40e39d589" />
