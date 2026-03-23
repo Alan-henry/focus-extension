@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Focus Flow</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;800&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0d0d0f;
+      --surface: #16161a;
+      --surface2: #1e1e24;
+      --border: #2a2a35;
+      --accent: #e8ff47;
+      --accent2: #ff6b6b;
+      --accent3: #47c8ff;
+      --text: #f0f0f5;
+      --muted: #6b6b80;
+      --work-color: #e8ff47;
+      --break-color: #47c8ff;
+    }
+
+    body {
+      width: 360px;
+      min-height: 540px;
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Syne', sans-serif;
+      overflow-x: hidden;
+    }
+
+    /* ── Tabs ── */
+    .tabs {
+      display: flex;
+      border-bottom: 1px solid var(--border);
+      background: var(--surface);
+    }
+    .tab-btn {
+      flex: 1;
+      padding: 12px 0;
+      background: none;
+      border: none;
+      color: var(--muted);
+      font-family: 'Syne', sans-serif;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: color 0.2s;
+      position: relative;
+    }
+    .tab-btn::after {
+      content: '';
+      position: absolute;
+      bottom: -1px;
+      left: 20%;
+      width: 60%;
+      height: 2px;
+      background: var(--accent);
+      transform: scaleX(0);
+      transition: transform 0.2s;
+    }
+    .tab-btn.active { color: var(--accent); }
+    .tab-btn.active::after { transform: scaleX(1); }
+
+    /* ── Panels ── */
+    .panel { display: none; padding: 20px; }
+    .panel.active { display: block; }
+
+    /* ── TIMER PANEL ── */
+    .phase-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 4px;
+    }
+    .phase-dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: var(--work-color);
+      transition: background 0.4s;
+    }
+    .phase-dot.break { background: var(--break-color); }
+
+    .timer-display {
+      font-family: 'Space Mono', monospace;
+      font-size: 64px;
+      font-weight: 700;
+      letter-spacing: -2px;
+      line-height: 1;
+      margin: 8px 0 4px;
+      transition: color 0.4s;
+    }
+    .timer-display.work-mode { color: var(--work-color); }
+    .timer-display.break-mode { color: var(--break-color); }
+
+    .progress-bar {
+      width: 100%;
+      height: 3px;
+      background: var(--border);
+      border-radius: 2px;
+      margin: 12px 0 20px;
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      background: var(--work-color);
+      border-radius: 2px;
+      transition: width 1s linear, background 0.4s;
+      width: 100%;
+    }
+    .progress-fill.break-mode { background: var(--break-color); }
+
+    /* Timer controls */
+    .timer-controls {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    .btn-primary {
+      flex: 1;
+      padding: 12px;
+      background: var(--accent);
+      color: #0d0d0f;
+      border: none;
+      border-radius: 8px;
+      font-family: 'Syne', sans-serif;
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: 0.05em;
+      cursor: pointer;
+      transition: opacity 0.15s, transform 0.15s;
+    }
+    .btn-primary:hover { opacity: 0.88; transform: translateY(-1px); }
+    .btn-primary:active { transform: translateY(0); }
+    .btn-primary.break-mode { background: var(--break-color); }
+
+    .btn-secondary {
+      padding: 12px 16px;
+      background: var(--surface2);
+      color: var(--muted);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-family: 'Syne', sans-serif;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: color 0.15s, border-color 0.15s;
+    }
+    .btn-secondary:hover { color: var(--text); border-color: var(--muted); }
+
+    /* Settings section */
+    .settings-header {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 10px;
+    }
+    .settings-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    .setting-item label {
+      display: block;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--muted);
+      margin-bottom: 5px;
+      letter-spacing: 0.06em;
+    }
+    .setting-item input[type="number"] {
+      width: 100%;
+      padding: 9px 12px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      color: var(--text);
+      font-family: 'Space Mono', monospace;
+      font-size: 16px;
+      font-weight: 700;
+      text-align: center;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .setting-item input[type="number"]:focus {
+      border-color: var(--accent);
+    }
+    .setting-item input[type="number"]::-webkit-inner-spin-button { display: none; }
+
+    /* Pomodoro count */
+    .pomodoro-count {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+    .count-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--muted);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+    .count-dots {
+      display: flex;
+      gap: 5px;
+    }
+    .count-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--border);
+      transition: background 0.3s;
+    }
+    .count-dot.filled { background: var(--accent); }
+
+    /* ── TODO PANEL ── */
+    .todo-input-row {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+    .todo-input {
+      flex: 1;
+      padding: 10px 14px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-family: 'Syne', sans-serif;
+      font-size: 13px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .todo-input::placeholder { color: var(--muted); }
+    .todo-input:focus { border-color: var(--accent); }
+
+    .btn-add {
+      width: 40px; height: 40px;
+      background: var(--accent);
+      border: none;
+      border-radius: 8px;
+      color: #0d0d0f;
+      font-size: 22px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: opacity 0.15s;
+      flex-shrink: 0;
+    }
+    .btn-add:hover { opacity: 0.85; }
+
+    .todo-filters {
+      display: flex;
+      gap: 4px;
+      margin-bottom: 12px;
+    }
+    .filter-btn {
+      padding: 5px 12px;
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      color: var(--muted);
+      font-family: 'Syne', sans-serif;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .filter-btn.active {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #0d0d0f;
+    }
+
+    .todo-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      max-height: 310px;
+      overflow-y: auto;
+      padding-right: 2px;
+    }
+    .todo-list::-webkit-scrollbar { width: 3px; }
+    .todo-list::-webkit-scrollbar-track { background: transparent; }
+    .todo-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+    .todo-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 11px 12px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      transition: border-color 0.15s, opacity 0.2s;
+      animation: slideIn 0.2s ease;
+    }
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateY(-6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .todo-item:hover { border-color: var(--muted); }
+    .todo-item.done { opacity: 0.45; }
+
+    .todo-check {
+      width: 18px; height: 18px;
+      border: 2px solid var(--border);
+      border-radius: 5px;
+      cursor: pointer;
+      flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      transition: all 0.15s;
+    }
+    .todo-check:hover { border-color: var(--accent); }
+    .todo-check.checked {
+      background: var(--accent);
+      border-color: var(--accent);
+    }
+    .todo-check.checked::after {
+      content: '✓';
+      font-size: 11px;
+      color: #0d0d0f;
+      font-weight: 800;
+    }
+
+    .todo-text {
+      flex: 1;
+      font-size: 13px;
+      font-weight: 400;
+      line-height: 1.3;
+      word-break: break-word;
+    }
+    .todo-item.done .todo-text {
+      text-decoration: line-through;
+      color: var(--muted);
+    }
+
+    .todo-delete {
+      width: 24px; height: 24px;
+      background: none;
+      border: none;
+      color: var(--muted);
+      cursor: pointer;
+      opacity: 0;
+      font-size: 16px;
+      display: flex; align-items: center; justify-content: center;
+      border-radius: 4px;
+      transition: opacity 0.15s, color 0.15s;
+      flex-shrink: 0;
+    }
+    .todo-item:hover .todo-delete { opacity: 1; }
+    .todo-delete:hover { color: var(--accent2); }
+
+    .todo-empty {
+      text-align: center;
+      padding: 40px 0;
+      color: var(--muted);
+      font-size: 12px;
+      letter-spacing: 0.05em;
+    }
+    .todo-empty span {
+      display: block;
+      font-size: 28px;
+      margin-bottom: 8px;
+    }
+
+    .todo-stats {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 12px;
+      font-size: 11px;
+      color: var(--muted);
+      font-weight: 600;
+      letter-spacing: 0.06em;
+    }
+    .clear-done-btn {
+      background: none;
+      border: none;
+      color: var(--muted);
+      font-family: 'Syne', sans-serif;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: color 0.15s;
+    }
+    .clear-done-btn:hover { color: var(--accent2); }
+  </style>
+</head>
+<body>
+
+<div class="tabs">
+  <button class="tab-btn active" data-tab="timer">⏱ Timer</button>
+  <button class="tab-btn" data-tab="todo">✓ Tasks</button>
+</div>
+
+<!-- TIMER PANEL -->
+<div class="panel active" id="panel-timer">
+  <div class="phase-badge">
+    <div class="phase-dot" id="phaseDot"></div>
+    <span id="phaseLabel">Work</span>
+  </div>
+  <div class="timer-display work-mode" id="timerDisplay">25:00</div>
+
+  <div class="progress-bar">
+    <div class="progress-fill" id="progressFill"></div>
+  </div>
+
+  <div class="pomodoro-count">
+    <span class="count-label">Today</span>
+    <div class="count-dots" id="countDots">
+      <div class="count-dot"></div>
+      <div class="count-dot"></div>
+      <div class="count-dot"></div>
+      <div class="count-dot"></div>
+    </div>
+  </div>
+
+  <div class="timer-controls">
+    <button class="btn-primary" id="startStopBtn">START</button>
+    <button class="btn-secondary" id="resetBtn">↺</button>
+  </div>
+
+  <div class="settings-header">Custom Duration</div>
+  <div class="settings-row">
+    <div class="setting-item">
+      <label>Work (mins)</label>
+      <input type="number" id="workMins" value="25" min="1" max="120">
+    </div>
+    <div class="setting-item">
+      <label>Break (mins)</label>
+      <input type="number" id="breakMins" value="5" min="1" max="60">
+    </div>
+  </div>
+</div>
+
+<!-- TODO PANEL -->
+<div class="panel" id="panel-todo">
+  <div class="todo-input-row">
+    <input class="todo-input" id="todoInput" type="text" placeholder="Add a new task…" maxlength="120">
+    <button class="btn-add" id="addTodoBtn">+</button>
+  </div>
+
+  <div class="todo-filters">
+    <button class="filter-btn active" data-filter="all">All</button>
+    <button class="filter-btn" data-filter="active">Active</button>
+    <button class="filter-btn" data-filter="done">Done</button>
+  </div>
+
+  <div class="todo-list" id="todoList"></div>
+
+  <div class="todo-stats">
+    <span id="todoStats">0 tasks</span>
+    <button class="clear-done-btn" id="clearDoneBtn">Clear done</button>
+  </div>
+</div>
+
+<script src="popup.js"></script>
+</body>
+</html>
