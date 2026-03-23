@@ -13,7 +13,8 @@ Features :
 
 <img width="438" height="633" alt="image" src="https://github.com/user-attachments/assets/bd799a40-2add-4a01-aa89-1ee40e39d589" />
 
-How to add to chrome (as it is not on the store):
+
+# How to add to chrome (as it is not on the store):
 1. Clone this repo
 2. Go to `chrome://extensions` in Chrome
 3. Enable Developer mode
