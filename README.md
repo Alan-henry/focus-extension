@@ -1,4 +1,4 @@
-# focus-extension
+# focus-extension 
 Features : 
 <img width="437" height="573" alt="image" src="https://github.com/user-attachments/assets/ef6804b4-d0a9-45d4-a1f6-96f09935f409" />
 
